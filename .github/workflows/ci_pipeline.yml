@@ -36,10 +36,6 @@ jobs:
     # 'modelling.py' will generate 'run_id.txt' inside the MLProject folder
     - name: Train Model via MLflow Project
       run: |
-        cd Workflow-CI/MLProject
-        # We run locally (-e .) to avoid Conda overhead for speed, 
-        # or use standard 'mlflow run .' if Conda is set up on runner.
-        # For simplicity in CI, we run the command directly via python to ensure environment match
         python modelling.py
 
     # 5. Read Run ID
@@ -47,7 +43,6 @@ jobs:
     - name: Read Run ID
       id: get_run_id
       run: |
-        cd Workflow-CI/MLProject
         run_id=$(cat run_id.txt)
         echo "Detected Run ID: $run_id"
         echo "RUN_ID=$run_id" >> $GITHUB_ENV
