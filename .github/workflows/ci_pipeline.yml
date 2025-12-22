@@ -40,7 +40,7 @@ jobs:
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
         run: |    
-          mlflow run . --no-conda
+          mlflow run . --env-manager=local
 
       - name: Build & Push Docker Image
         env:
