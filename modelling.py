@@ -75,3 +75,14 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+    rf.fit(X_train, y_train)
+    
+    run_id = run.info.run_id
+    
+    # Simpan ke file teks agar bisa dibaca oleh GitHub Actions steps berikutnya
+    with open("run_id.txt", "w") as f:
+        f.write(run_id)
+
+    print(f"Training Selesai. Run ID {run_id} disimpan ke run_id.txt")

@@ -1,7 +1,12 @@
 name: SMSML_Project
 
+# Kita definisikan env, tapi nanti di CI kita pakai flag --no-conda 
+# agar menggunakan environment GitHub Actions yang sudah kita install pip-nya.
 conda_env: conda.yaml
 
 entry_points:
   main:
+    parameters:
+      # Opsional: Bisa tambah parameter jika scriptmu butuh input
+      dummy_param: {type: string, default: "none"}
     command: "python modelling.py"
