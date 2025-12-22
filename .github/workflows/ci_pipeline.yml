@@ -1,0 +1,75 @@
+name: CI/CD Pipeline (Train & Build Docker)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  train-and-deploy:
+    runs-on: ubuntu-latest
+    
+    # Define secrets here to pass to MLflow
+    env:
+      MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+      MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+      # Assuming your repo name is constant, or use a secret for the full URI
+      DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+      MLFLOW_TRACKING_URI: "https://dagshub.com/vadhh/SMSML_Afridho_Tavadhu.mlflow" 
+
+    steps:
+    # 1. Checkout Code
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # 2. Set up Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12.7'
+
+    # 3. Install MLflow & Dependencies
+    - name: Install MLflow
+      run: pip install mlflow==2.19.0 dagshub pandas scikit-learn matplotlib seaborn
+
+    # 4. Run MLflow Project (Training)
+    # This executes 'mlflow run' which runs 'modelling.py'
+    # 'modelling.py' will generate 'run_id.txt' inside the MLProject folder
+    - name: Train Model via MLflow Project
+      run: |
+        cd Workflow-CI/MLProject
+        # We run locally (-e .) to avoid Conda overhead for speed, 
+        # or use standard 'mlflow run .' if Conda is set up on runner.
+        # For simplicity in CI, we run the command directly via python to ensure environment match
+        python modelling.py
+
+    # 5. Read Run ID
+    # We extract the run_id to know WHICH model to package
+    - name: Read Run ID
+      id: get_run_id
+      run: |
+        cd Workflow-CI/MLProject
+        run_id=$(cat run_id.txt)
+        echo "Detected Run ID: $run_id"
+        echo "RUN_ID=$run_id" >> $GITHUB_ENV
+
+    # 6. Login to Docker Hub
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    # 7. Build Docker Image serving the Model
+    # We use 'runs:/<id>/model' because autolog saves it to the 'model' folder
+    - name: Build Docker Image
+      run: |
+        echo "Building Docker image for Run ID: ${{ env.RUN_ID }}"
+        mlflow models build-docker \
+          -m "runs:/${{ env.RUN_ID }}/model" \
+          -n "vadhh/smsml-submission:latest" \
+          --enable-mlserver
+
+    # 8. Push to Docker Hub
+    - name: Push Docker Image
+      run: |
+        docker push vadhh/smsml-submission:latest
