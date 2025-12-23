@@ -42,11 +42,12 @@ jobs:
         run: |    
           mlflow run . --env-manager=local
 
-      - name: Build & Push Docker Image
+      - name: Train Model using MLflow Run
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+          DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
           # Cek apakah run_id.txt terbentuk
           if [ -f MLProject/run_id.txt ]; then
