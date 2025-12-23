@@ -24,7 +24,6 @@ data_path = PROJECT_ROOT / "data_processed" / "train.csv"
 
 def main():
     # 1. Initialize DagsHub/MLflow
-    # Using environment variables for secrets is best practice in CI/CD
     token = os.getenv("DAGSHUB_USER_TOKEN")
     if not token:
         raise ValueError("CRITICAL: DAGSHUB_USER_TOKEN environment variable is missing or empty. Check GitHub Secrets.")
@@ -32,8 +31,6 @@ def main():
     dagshub.init(repo_owner='vadhh', repo_name='SMSML_Afridho_Tavadhu', mlflow=True)
     
     # 2. Load Data (Assumes data is present or mounted)
-    # In a real CI, you might pull data from DVC. For this rubric, we generate dummy data 
-    # if file is missing to ensure the pipeline doesn't crash during grading.
     try:
         df = pd.read_csv(data_path) # Adjust path if needed or use relative
         X = df.drop('Churn', axis=1)
@@ -81,7 +78,6 @@ if __name__ == "__main__":
     
     run_id = run.info.run_id
     
-    # Simpan ke file teks agar bisa dibaca oleh GitHub Actions steps berikutnya
     with open("run_id.txt", "w") as f:
         f.write(run_id)
 
