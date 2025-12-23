@@ -15,7 +15,6 @@ from pathlib import Path
 plt.switch_backend('Agg')
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-
 data_path = SCRIPT_DIR / "data_processed" / "train.csv"
 
 def main():
@@ -63,6 +62,8 @@ def main():
         y_test = pd.Series(np.random.randint(0, 2, 20))
 
     # 3. Start Run
+    # PENTING: HAPUS set_experiment agar tidak konflik dengan 'mlflow run'
+    # mlflow.set_experiment("...") <-- SUDAH DIHAPUS
     
     print("[INFO] Starting MLflow Run...")
     with mlflow.start_run() as run:
@@ -83,4 +84,17 @@ def main():
 
         # 5. Create Artifacts (Confusion Matrix)
         best_model = grid_search.best_estimator_
-        y_pred = best_model.predict(X_
+        y_pred = best_model.predict(X_test)
+        
+        cm = confusion_matrix(y_test, y_pred)
+        plt.figure(figsize=(6,4))
+        sns.heatmap(cm, annot=True, fmt='d')
+        plt.title('Confusion Matrix')
+        plt.savefig("confusion_matrix.png")
+        
+        mlflow.log_artifact("confusion_matrix.png")
+        
+        print(f"[SUCCESS] Run ID {run_id} saved to run_id.txt")
+
+if __name__ == "__main__":
+    main()
