@@ -14,6 +14,7 @@ from pathlib import Path
 # Fix GUI issues in CI
 plt.switch_backend('Agg')
 
+# Pathing setup
 SCRIPT_DIR = Path(__file__).resolve().parent
 data_path = SCRIPT_DIR / "data_processed" / "train.csv"
 
@@ -58,11 +59,15 @@ def main():
         run_id = run.info.run_id
         print(f"[INFO] Run ID: {run_id}")
         
+        # --- BAGIAN KRUSIAL (REVISI) ---
+        # Cek apakah kita sedang di GitHub Actions
         github_workspace = os.getenv("GITHUB_WORKSPACE")
         
         if github_workspace:
+            # Jika di CI, paksa simpan ke folder kerja utama (bukan /tmp milik MLflow)
             save_path = os.path.join(github_workspace, "run_id.txt")
         else:
+            # Jika run local di laptop, simpan biasa
             save_path = "run_id.txt"
             
         with open(save_path, "w") as f:
